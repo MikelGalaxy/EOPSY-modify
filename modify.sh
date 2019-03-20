@@ -1,10 +1,10 @@
 #!/bin/bash
 # Author: Michal Boniakowski
-echo "TEST"
+
 
 parameter1=$1
 parameter2=$2
-
+filesStartFrom=2
 
 display_help()
 {
@@ -19,7 +19,7 @@ filenames. It can also use sed pattern for that purpose.
 Changes can be done with recursion (-r)(changing name for all files in folder)
 or without it(just file or folder name)
 
-modify [1-9] is used for testing purpose where digit represent test number
+Use modify_examples to test
 
 EOF
 }
@@ -51,36 +51,52 @@ check_pattern()
 }
 
 
-check_filename()
-{
-    echo $1
-}
-
-iter()
+# first parrameter is change mode
+iterate()
 {
     #iterate over arguments / files
-    for var in ${@:$1};
+    #+1 cuz pattern or l|u passing
+    for file in ${@:$filesStartFrom+1};
     do
-        echo "$var"
-    done
+        change_filename $1 $file
+    done   
 }
-
 
 change_filename()
 {
-    if [ -z "$3" ] ; then
-        mv -- "$1" "$2"
+    if [ -e "$2" ] ; then
+        if [ $1 = "-l" ] ; then
+            change_name $2 ${2,,}
+        elif [ $1 = "-u" ] ; then
+            change_name $2 ${2^^}
+        else
+            nFilename=$(echo "$2" | sed $1)
+            change_name $2 $nFilename
+        fi        
     else
-        echo "Pattern change"
+        echo "File doesn't exist"
     fi
 }
+
+change_name()
+{
+    if [ $1 = $2 ] ; then
+        echo "File with given name allready exists"
+    else
+        mv -- "$1" "$2"
+        echo "Changed $1 to $2"
+    fi   
+}
+
+#"main" start
+echo "START"
 
 #first parameter check
 case $parameter1 in
     "-h") display_help ;;
     "-r") check_following_parmeter $parameter2 ;;
-    "-u") check_filename "-u" ;;
-    "-l") check_filename "-l" ;;
+    "-u") iterate "-u" $@ ;;
+    "-l") iterate "-l" $@ ;;
     *) display_error_flag ;;
 esac
 
@@ -89,6 +105,18 @@ esac
 
 #change_filename "take" "lolz" $3
 
+#iterate $1 $@ 
+
+#echo "take" | sed 's/ta/OP/'
+#fname="take"
+#expl=$(echo "$fname" | sed 's/ta/OP/')
+#echo $expl
+#mv -- "$fname" "$expl"
+
+
+
 #echo $parameter1
 #echo $parameter2
 echo "END"
+
+#"main" end
