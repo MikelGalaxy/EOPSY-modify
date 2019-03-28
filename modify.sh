@@ -1,10 +1,10 @@
 #!/bin/bash
 # Author: Michal Boniakowski
 
-
-parameter1=$1
-parameter2=$2
+#first param mode then at 2 or 3 files start
 filesStartFrom=2
+#stores info about foldernamechange
+name_changed=""
 
 display_help()
 {
@@ -31,23 +31,38 @@ display_error_flag()
     exit 1
 }
 
-check_following_parmeter()
+recursive_follow()
 {
     #check of 2nd parameter
     if [ "$1" == "-u" ] ; then
-        echo "Upp"
+        reucursion_check $@
     elif [ "$1" == "-l" ] ; then
-        echo "Low"
+        reucursion_check $@
     elif [ -z "$1" ] ; then
         display_error_flag
     else
-        check_pattern $1
+        reucursion_check $@
     fi
 }
 
-check_pattern()
+
+reucursion_check()
 {
-     echo "Check if pattern"
+   
+    for file in ${@:3};
+    do
+        change_filename $2 $file
+
+        if [ -d "$name_changed" ] ; then
+            for entry in "$name_changed"/*
+            do
+                change_filename $2 $entry
+            done
+
+        else
+        change_filename $2 $file
+        fi
+    done   
 }
 
 
@@ -59,7 +74,7 @@ iterate()
     for file in ${@:$filesStartFrom+1};
     do
         change_filename $1 $file
-    done   
+    done
 }
 
 change_filename()
@@ -84,6 +99,7 @@ change_name()
         echo "File with given name allready exists"
     else
         mv -- "$1" "$2"
+        name_changed=$2
         echo "Changed $1 to $2"
     fi   
 }
@@ -92,9 +108,9 @@ change_name()
 echo "START"
 
 #first parameter check
-case $parameter1 in
+case $1 in
     "-h") display_help ;;
-    "-r") check_following_parmeter $parameter2 ;;
+    "-r") recursive_follow $@ ;;
     "-u") iterate "-u" $@ ;;
     "-l") iterate "-l" $@ ;;
     *) display_error_flag ;;
@@ -113,10 +129,5 @@ esac
 #echo $expl
 #mv -- "$fname" "$expl"
 
-
-
-#echo $parameter1
-#echo $parameter2
 echo "END"
-
 #"main" end

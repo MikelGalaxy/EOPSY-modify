@@ -1,0 +1,5 @@
+#!/bin/bash
+# Author: Michal Boniakowski
+echo "TEST"
+
+echo "END"
