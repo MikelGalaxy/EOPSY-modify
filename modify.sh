@@ -62,12 +62,13 @@ reucursion_iter()
 recursion()
 {
         change_filename $1 $2
+        #check if file is folder using temp filename for valid folder
         if [ -d "$name_changed" ] ; then
             for entry in "$name_changed"/*
             do               
                 if [ -d "$entry" ] ; then
                     #if another folder call itself with same parameter but new foldername as file parameter
-                    recur $1 $entry
+                    recursion $1 $entry
                 else
                     change_filename $1 $entry
                 fi
