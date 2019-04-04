@@ -3,11 +3,13 @@
 
 #first param mode then at 2 or 3 files start
 filesStartFrom=2
+
 #stores info about foldernamechange
 name_changed=""
 
 display_help()
 {
+#display help as free text till next EOF appear
 cat <<EOF
 
 Help
@@ -24,6 +26,7 @@ Use modify_examples to test
 EOF
 }
 
+#information when invalid flag was found on input
 display_error_flag()
 {
     echo "Inappropraite flag/sed used"
@@ -31,40 +34,48 @@ display_error_flag()
     exit 1
 }
 
+#check what follows -r parameter
 recursive_follow()
 {
-    #check of 2nd parameter
     if [ "$1" == "-u" ] ; then
-        reucursion_check $@
+        reucursion_iter $@
     elif [ "$1" == "-l" ] ; then
-        reucursion_check $@
+        reucursion_iter $@
     elif [ -z "$1" ] ; then
         display_error_flag
     else
-        reucursion_check $@
+        reucursion_iter $@
     fi
 }
 
-
-reucursion_check()
+#iterate over initial files/folders
+reucursion_iter()
 {
-   
+
     for file in ${@:3};
     do
-        change_filename $2 $file
-
-        if [ -d "$name_changed" ] ; then
-            for entry in "$name_changed"/*
-            do
-                change_filename $2 $entry
-            done
-
-        else
-        change_filename $2 $file
-        fi
+        recursion $2 $file       
     done   
 }
 
+# $1 changetype $2 filename
+recursion()
+{
+        change_filename $1 $2
+        if [ -d "$name_changed" ] ; then
+            for entry in "$name_changed"/*
+            do               
+                if [ -d "$entry" ] ; then
+                    #if another folder call itself with same parameter but new foldername as file parameter
+                    recur $1 $entry
+                else
+                    change_filename $1 $entry
+                fi
+            done
+        else
+        change_filename $1 $2
+        fi
+}
 
 # first parrameter is change mode
 iterate()
@@ -77,14 +88,20 @@ iterate()
     done
 }
 
+# decide what to do with filename $2
+# $1 is flag what to do (l,u,seed)
 change_filename()
 {
+    #checking if file exists
     if [ -e "$2" ] ; then
         if [ $1 = "-l" ] ; then
+        #${2,,} changes $2 to upper
             change_name $2 ${2,,}
         elif [ $1 = "-u" ] ; then
+        #${2^^} changes $2 to upper
             change_name $2 ${2^^}
         else
+            #get file $2 as stream and then chenge it by sed $1
             nFilename=$(echo "$2" | sed $1)
             change_name $2 $nFilename
         fi        
@@ -93,12 +110,16 @@ change_filename()
     fi
 }
 
+#check if filename already exists
+#change filename $1 to $2
 change_name()
 {
     if [ $1 = $2 ] ; then
         echo "File with given name allready exists"
     else
+    #move filename $1 to $2
         mv -- "$1" "$2"
+    #saved to temp filename for folders and recursion
         name_changed=$2
         echo "Changed $1 to $2"
     fi   
@@ -115,19 +136,6 @@ case $1 in
     "-l") iterate "-l" $@ ;;
     *) display_error_flag ;;
 esac
-
-#first parameter determine from what pos statrt itteration(first poss is that parmeter so use i+1)
-#iter 3 $@
-
-#change_filename "take" "lolz" $3
-
-#iterate $1 $@ 
-
-#echo "take" | sed 's/ta/OP/'
-#fname="take"
-#expl=$(echo "$fname" | sed 's/ta/OP/')
-#echo $expl
-#mv -- "$fname" "$expl"
 
 echo "END"
 #"main" end

@@ -4,7 +4,7 @@ echo "Test script"
 
 echo ""
 echo "Lower"
-./modify.sh -l opke
+./modify.sh -l OPKE
 
 echo ""
 echo "Help test"
