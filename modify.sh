@@ -37,13 +37,16 @@ display_error_flag()
 #check what follows -r parameter
 recursive_follow()
 {
+    #if second parmeter equals -u or -l call recursion_iter function passing set of parameters $@
     if [ "$1" == "-u" ] ; then
         reucursion_iter $@
     elif [ "$1" == "-l" ] ; then
         reucursion_iter $@
     elif [ -z "$1" ] ; then
+    #if second parameter doesn't exist then display error messafe
         display_error_flag
     else
+    #else is for seed option
         reucursion_iter $@
     fi
 }
@@ -51,10 +54,11 @@ recursive_follow()
 #iterate over initial files/folders
 reucursion_iter()
 {
-
+    #iteration starts from position number 3 
     for file in ${@:3};
     do
-        recursion $2 $file       
+    #passing type change mode-$2 and filename
+        recursion $2 $file
     done   
 }
 
@@ -70,6 +74,7 @@ recursion()
                     #if another folder call itself with same parameter but new foldername as file parameter
                     recursion $1 $entry
                 else
+                    #if not folder then just change name
                     change_filename $1 $entry
                 fi
             done
